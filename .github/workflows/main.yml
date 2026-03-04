@@ -57,7 +57,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           mkdir -p ffmpeg/linux
-          curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o ffmpeg.tar.xz
+          curl -L https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz -o ffmpeg.tar.xz
           tar -xf ffmpeg.tar.xz
           mv ffmpeg-*-amd64-static/ffmpeg ffmpeg/linux/
           mv ffmpeg-*-amd64-static/ffprobe ffmpeg/linux/
