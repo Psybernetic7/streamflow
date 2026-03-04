@@ -68,8 +68,8 @@ jobs:
           mkdir -p ffmpeg/win/bin
           curl -L https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip -o ffmpeg.zip
           unzip ffmpeg.zip
-          mv ffmpeg-*/bin/ffmpeg.exe ffmpeg/win/bin/
-          mv ffmpeg-*/bin/ffprobe.exe ffmpeg/win/bin/
+          mv ffmpeg-*/bin/ffmpeg.exe ffmpeg/win/
+          mv ffmpeg-*/bin/ffprobe.exe ffmpeg/win/
 
       - name: Setup FFmpeg (macOS)
         if: runner.os == 'macOS'
