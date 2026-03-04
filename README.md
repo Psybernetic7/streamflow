@@ -69,29 +69,6 @@ Use `--skip-build` / `-SkipBuild` on subsequent runs if you haven't changed the 
 
 ---
 
-## Dev (with HMR)
-
-```bash
-# Terminal 1 — API + streaming server
-cd streamer && npm install && node server.js
-
-# Terminal 2 — frontend dev server with hot reload
-cd frontend && npm install && npm run dev
-# Open http://localhost:5173
-```
-
----
-
-## Docker
-
-```bash
-docker compose up --build
-# Dev frontend at http://localhost:5173
-# API server at http://localhost:9090
-```
-
----
-
 ## API
 
 | Endpoint | Description |
