@@ -3,8 +3,8 @@ permissions:
   contents: write
 on:
   push:
-    branches:
-      - main
+    # branches:
+    #   - main
     tags:
       - "v*"
   workflow_dispatch:
@@ -46,8 +46,8 @@ jobs:
 
       - name: Copy frontend build to streamer
         run: |
-          mkdir -p streamer/dist
-          cp -r frontend/dist/* streamer/dist/
+          mkdir -p streamer/public
+          cp -r frontend/dist/* streamer/public/
 
       # -------------------------
       # Download FFmpeg
