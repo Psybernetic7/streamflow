@@ -67,56 +67,46 @@ function Install-NodeWindows {
 }
 
 function Install-FFmpegWindows {
-    Write-Step "Installing FFmpeg"
+    Write-Step "Checking FFmpeg"
 
-    if (Get-Command winget -ErrorAction SilentlyContinue) {
-        Write-Info "Using winget"
-        winget install --id Gyan.FFmpeg --accept-source-agreements --accept-package-agreements --silent
-        Refresh-Path
+    $target = Join-Path $Root "ffmpeg\win"
+    $ffmpegExe = Join-Path $target "ffmpeg.exe"
+
+    if (Test-Path $ffmpegExe) {
+        Write-Ok "FFmpeg already present"
         return
     }
 
-    if (Get-Command choco -ErrorAction SilentlyContinue) {
-        Write-Info "Using Chocolatey"
-        choco install ffmpeg -y
-        Refresh-Path
-        return
-    }
+    Write-Warn "Downloading FFmpeg"
 
-    Write-Warn "winget and choco not found -- downloading FFmpeg ZIP"
-
-    $arch = if ([System.Environment]::Is64BitOperatingSystem) { "win64" } else { "win32" }
     $zipUrl = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip"
     $tmpZip = Join-Path $env:TEMP "ffmpeg.zip"
-    $installDir = "C:\ffmpeg"
+    $tmpDir = Join-Path $env:TEMP "ffmpeg_extract"
 
-    Write-Info "Downloading FFmpeg..."
-    Invoke-WebRequest $zipUrl -OutFile $tmpZip -UseBasicParsing
+    Invoke-WebRequest $zipUrl -OutFile $tmpZip
 
-    Write-Info "Extracting..."
-    Expand-Archive $tmpZip -DestinationPath $env:TEMP -Force
-
-    $extracted = Get-ChildItem $env:TEMP -Directory | Where-Object { $_.Name -like "ffmpeg-*" } | Select-Object -First 1
-    if (-not $extracted) {
-        Write-Fail "Could not extract FFmpeg"
+    if(Test-Path $tmpDir){
+        Remove-Item $tmpDir -Recurse -Force
     }
 
-    if (Test-Path $installDir) {
-        Remove-Item $installDir -Recurse -Force
+    Expand-Archive $tmpZip -DestinationPath $tmpDir
+
+    $ffmpeg = Get-ChildItem $tmpDir -Recurse -Filter ffmpeg.exe | Select-Object -First 1
+    $ffprobe = Get-ChildItem $tmpDir -Recurse -Filter ffprobe.exe | Select-Object -First 1
+
+    if(!$ffmpeg -or !$ffprobe){
+        Fail "FFmpeg binaries not found"
     }
 
-    Move-Item "$($extracted.FullName)" $installDir
+    New-Item -ItemType Directory -Path $target -Force | Out-Null
 
-    $binPath = Join-Path $installDir "bin"
-    $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
+    Copy-Item $ffmpeg.FullName "$target\ffmpeg.exe"
+    Copy-Item $ffprobe.FullName "$target\ffprobe.exe"
 
-    if ($machinePath -notlike "*$binPath*") {
-        Write-Info "Adding FFmpeg to PATH"
-        [System.Environment]::SetEnvironmentVariable("PATH", "$machinePath;$binPath", "Machine")
-    }
+    Remove-Item $tmpZip -Force
+    Remove-Item $tmpDir -Recurse -Force
 
-    Remove-Item $tmpZip -ErrorAction SilentlyContinue
-    Refresh-Path
+    Write-Ok "FFmpeg installed to ffmpeg/win"
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -147,17 +137,17 @@ if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
 
 # 1.5 FFmpeg
 Write-Step "Checking FFmpeg"
-if (Get-Command ffmpeg -ErrorAction SilentlyContinue) {
-    Write-OK "FFmpeg available"
-} else {
-    Write-Warn "FFmpeg not found -- installing automatically"
+# if (Get-Command ffmpeg -ErrorAction SilentlyContinue) {
+#     Write-OK "FFmpeg available"
+# } else {
+    # Write-Warn "FFmpeg not found -- installing automatically"
     Install-FFmpegWindows
     Refresh-Path
     if (Get-Command ffmpeg -ErrorAction SilentlyContinue) {
         Write-OK "FFmpeg installed"
     } else {
         Write-Fail "FFmpeg installation failed. Install manually: https://ffmpeg.org"
-    }
+    # }
 }
 
 # 2. Frontend
