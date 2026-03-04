@@ -1,8 +1,8 @@
 {
   "name": "streamflow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Torrent streaming desktop app",
-  "author": "Your Name",
+  "author": "Rajib Roy",
   "main": "electron/main.js",
   "private": true,
 
