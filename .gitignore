@@ -1,0 +1,125 @@
+# =========================
+
+# Node
+
+# =========================
+
+node_modules/
+streamer/node_modules/
+frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+
+# Electron build output
+
+# =========================
+
+dist/
+build/
+release/
+out/
+
+# electron-builder cache
+
+.cache/
+electron-builder-cache/
+
+# =========================
+
+# React / Frontend
+
+# =========================
+
+frontend/node_modules/
+frontend/build/
+frontend/.cache/
+frontend/.vite/
+
+# =========================
+
+# Environment files
+
+# =========================
+
+.env
+.env.*
+!.env.example
+
+# =========================
+
+# Logs
+
+# =========================
+
+logs/
+*.log
+
+# =========================
+
+# OS Files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+
+# IDE / Editors
+
+# =========================
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# =========================
+
+# Temporary
+
+# =========================
+
+tmp/
+temp/
+
+# =========================
+
+# Testing
+
+# =========================
+
+coverage/
+
+# =========================
+
+# Electron auto-updater
+
+# =========================
+
+*.blockmap
+latest.yml
+
+# =========================
+
+# Misc
+
+# =========================
+
+*.pid
+*.seed
+*.tgz
+*.tar.gz
+*.zip
+
+
+ffmpeg/

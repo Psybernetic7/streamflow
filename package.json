@@ -1,0 +1,47 @@
+{
+  "name": "streamflow",
+  "version": "1.0.0",
+  "description": "Torrent streaming desktop app",
+  "author": "Your Name",
+  "main": "electron/main.js",
+  "private": true,
+
+  "scripts": {
+    "dev": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+
+  "build": {
+    "appId": "com.streamflow.desktop",
+    "productName": "StreamFlow",
+    "files": [
+      "electron/**/*",
+      "streamer/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "ffmpeg/",
+        "to": "ffmpeg"
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+  "target": "AppImage",
+  "category": "Video"
+}
+  },
+
+  "devDependencies": {
+    "electron": "^40.6.1",
+    "electron-builder": "^26.8.1"
+  }
+}

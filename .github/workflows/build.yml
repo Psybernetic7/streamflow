@@ -1,0 +1,97 @@
+name: Build StreamFlow
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      # -------------------------
+      # Build React frontend
+      # -------------------------
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Copy frontend build to streamer
+        run: |
+          mkdir -p streamer/dist
+          cp -r frontend/dist/* streamer/dist/
+
+      # -------------------------
+      # Download FFmpeg
+      # -------------------------
+
+      - name: Setup FFmpeg (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p ffmpeg/linux
+          curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz -o ffmpeg.tar.xz
+          tar -xf ffmpeg.tar.xz
+          mv ffmpeg-*-amd64-static/ffmpeg ffmpeg/linux/
+          mv ffmpeg-*-amd64-static/ffprobe ffmpeg/linux/
+          chmod +x ffmpeg/linux/ffmpeg
+          chmod +x ffmpeg/linux/ffprobe
+
+      - name: Setup FFmpeg (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p ffmpeg/win/bin
+          curl -L https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip -o ffmpeg.zip
+          unzip ffmpeg.zip
+          mv ffmpeg-*/bin/ffmpeg.exe ffmpeg/win/bin/
+          mv ffmpeg-*/bin/ffprobe.exe ffmpeg/win/bin/
+
+      - name: Setup FFmpeg (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p ffmpeg/mac
+          brew install ffmpeg
+          cp $(which ffmpeg) ffmpeg/mac/
+          cp $(which ffprobe) ffmpeg/mac/
+
+      # -------------------------
+      # Build Electron App
+      # -------------------------
+
+      - name: Build Electron app
+        run: npx electron-builder --publish never
+
+      # -------------------------
+      # Upload artifacts
+      # -------------------------
+
+      - name: Upload builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamflow-${{ matrix.os }}
+          path: dist/*

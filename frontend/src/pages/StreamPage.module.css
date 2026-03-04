@@ -1,0 +1,1569 @@
+
+.page {
+  min-height: 100vh;
+  background: var(--bg-0);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Top bar */
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: rgba(6,8,16,0.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.backBtn {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  transition: all var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.03);
+}
+.backBtn:hover { color: var(--text); border-color: var(--border-hover); }
+
+.topTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+.healthDot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: pulse 2s infinite;
+}
+.titleText {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fileNameTag {
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: rgba(255,255,255,0.05);
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 300px;
+  flex-shrink: 1;
+}
+
+.explorerToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  transition: all var(--transition);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.explorerToggle:hover { color: var(--text); border-color: var(--border-hover); background: rgba(255,255,255,0.06); }
+.explorerToggleActive { color: var(--cyan) !important; border-color: rgba(0,212,255,0.3) !important; background: rgba(0,212,255,0.06) !important; }
+.explorerToggleLabel { display: none; }
+@media (min-width: 600px) { .explorerToggleLabel { display: inline; } }
+.fileCountBadge {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 99px;
+}
+
+/* Layout */
+.mainLayout {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+.withSidebar {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+}
+@media (max-width: 768px) {
+  .withSidebar { grid-template-columns: 1fr; }
+}
+
+/* Player area */
+.playerArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  position: relative;
+  height: calc(100vh - 72px);
+  max-height: calc(100vh - 72px);
+  overflow: hidden;
+}
+
+.playerOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(6,8,16,0.95);
+  z-index: 10;
+  padding: 2rem;
+}
+.overlaySpinner {
+  width: 52px; height: 52px;
+  border: 3px solid rgba(255,255,255,0.08);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+.overlayMsg {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  letter-spacing: 0.03em;
+  text-align: center;
+  max-width: 440px;
+}
+.overlayHint { font-size: 0.82rem; color: var(--muted); text-align: center; }
+.loadingDots {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.loadingDots span {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.2s infinite;
+}
+.loadingDots span:nth-child(2) { animation-delay: 0.2s; }
+.loadingDots span:nth-child(3) { animation-delay: 0.4s; }
+
+.errorIcon { font-size: 2.5rem; }
+.retryBtn {
+  padding: 0.6rem 1.5rem;
+  background: var(--accent);
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  transition: all var(--transition);
+}
+.retryBtn:hover { background: var(--accent-bright); }
+
+.playerBox {
+  flex: 1;
+  transition: opacity 0.3s ease;
+  height: calc(100vh - 130px);
+  max-height: calc(100vh - 130px);
+  background: #000;
+  overflow: hidden;
+}
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #000;
+}
+
+/* Stats bar */
+.statsBar {
+  background: rgba(6,8,16,0.97);
+  border-top: 1px solid var(--border);
+  padding: 0.6rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.progressTrack { height: 2px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+.progressFill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--cyan)); border-radius: 99px; transition: width 1s linear; }
+
+.statsRow { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.statItem { display: flex; flex-direction: column; gap: 0.1rem; }
+.statLabel { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.statVal { font-size: 0.85rem; font-weight: 600; font-family: var(--font-mono); color: var(--text); }
+.highlight { color: var(--cyan) !important; }
+
+.subUploadBtn {
+  margin-left: auto;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0.3rem 0.7rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.subUploadBtn:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+.subToggleBtn {
+  padding: 0.3rem 0.7rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  transition: all var(--transition);
+}
+.subToggleBtn:hover { background: rgba(255,255,255,0.1); }
+.subActive { color: var(--cyan) !important; border-color: rgba(0,212,255,0.3) !important; background: rgba(0,212,255,0.08) !important; }
+
+/* File explorer sidebar */
+.explorer {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-1);
+  border-left: 1px solid var(--border);
+  /* height: calc(100vh - 72px - 56px); */
+  position: sticky;
+  top: calc(72px + 56px);
+  overflow: hidden;
+  animation: slideInRight 0.2s ease;
+}
+@keyframes slideInRight { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.explorerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  flex-shrink: 0;
+}
+.explorerTitle { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); }
+.explorerCount { font-size: 0.7rem; background: rgba(255,255,255,0.08); padding: 0.1rem 0.4rem; border-radius: 99px; color: var(--muted); }
+
+.explorerSearch { padding: 0.6rem; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.explorerInput {
+  width: 100%;
+  padding: 0.35rem 0.65rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: var(--text);
+  outline: none;
+  transition: all var(--transition);
+}
+.explorerInput::placeholder { color: var(--muted); }
+.explorerInput:focus { border-color: var(--cyan); }
+
+.explorerList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.4rem 0;
+}
+
+.explorerGroup { margin-bottom: 0.5rem; }
+.groupLabel {
+  display: block;
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  padding: 0.4rem 1rem 0.25rem;
+  font-weight: 700;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  transition: all var(--transition);
+  border-left: 2px solid transparent;
+}
+.fileItem:hover { background: rgba(255,255,255,0.05); }
+.fileItemActive {
+  background: rgba(0,212,255,0.06) !important;
+  border-left-color: var(--cyan) !important;
+}
+.fileItemDim { opacity: 0.45; }
+.fileItemDim .fileItemMain { cursor: not-allowed; }
+.fileItemMain {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.55rem 0.5rem 0.55rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+.fileDownloadBtn {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  margin-right: 0.5rem;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  transition: all var(--transition);
+  opacity: 0;
+}
+.fileItem:hover .fileDownloadBtn { opacity: 1; }
+.fileDownloadBtn:hover { background: rgba(255,255,255,0.12); color: var(--cyan); border-color: rgba(0,212,255,0.3); }
+
+/* Audio track switcher */
+.audioTrackWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.audioLabel { font-size: 0.8rem; }
+.audioSelect {
+  padding: 0.25rem 0.5rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.audioSelect:focus { border-color: var(--cyan); }
+.fileIcon { font-size: 0.8rem; flex-shrink: 0; }
+.fileName {
+  flex: 1;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.fileItemActive .fileName { color: var(--cyan); }
+.fileSize { font-size: 0.65rem; color: var(--muted); flex-shrink: 0; font-family: var(--font-mono); }
+
+/* Magnet info */
+.magnetInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.5rem;
+  border-top: 1px solid var(--border);
+  background: rgba(6,8,16,0.8);
+}
+.magnetLabel { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); flex-shrink: 0; }
+.magnetVal { font-size: 0.72rem; color: var(--muted); font-family: var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Error page */
+.errorPage {
+  min-height: 100vh;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  background: var(--bg-0);
+}
+.errorBox {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: var(--radius);
+  color: rgba(255,255,255,0.7);
+}
+/* Subtitle control cluster */
+.subControls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+/* CC toggle — always visible, does NOT disappear */
+.subToggleBtn {
+  height: 28px;
+  padding: 0 0.55rem;
+  border-radius: 5px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.subToggleBtn:hover { color: var(--text); border-color: var(--border-hover); }
+.subActive {
+  color: white !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Subtitle source dropdown */
+.subSelect {
+  height: 28px;
+  padding: 0 1.5rem 0 0.5rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 0.72rem;
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.subSelect:focus { border-color: var(--accent); }
+.subSelect option { background: var(--bg-2); }
+
+/* Upload subtitle button */
+.subUploadBtn {
+  height: 28px;
+  width: 28px;
+  border-radius: 5px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.subUploadBtn:hover { color: var(--text); border-color: var(--border-hover); background: rgba(255,255,255,0.1); }
+.subControls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  position: relative;
+}
+
+/* CC Button */
+.subToggleBtn {
+  height: 30px;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(6px);
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.subToggleBtn:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.1);
+}
+
+.subActive {
+  color: white !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* Dropdown */
+.subDropdownWrapper {
+  position: relative;
+  width: 220px;
+}
+
+.subSelectTrigger {
+  width: 100%;
+  height: 30px;
+  padding: 0 0.8rem;
+  border-radius: 8px;
+
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  font-size: 0.75rem;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all 0.2s ease;
+}
+
+.subSelectTrigger:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.subTriggerLabel {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.arrow {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgba(255,255,255,0.6);
+  border-bottom: 2px solid rgba(255,255,255,0.6);
+  transform: rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.arrowOpen {
+  transform: rotate(-135deg);
+}
+
+.subDropdown {
+  position: absolute;
+  bottom: 38px;
+  left: 0;
+  width: 100%;
+
+  background: #0f172a;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+
+  box-shadow: 0 12px 32px rgba(0,0,0,0.6);
+
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 999;
+  animation: fadeIn 0.15s ease;
+}
+
+.subOption {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s ease;
+}
+
+.subOption:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.subGroupLabel {
+  padding: 6px 12px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  opacity: 0.5;
+  letter-spacing: 0.08em;
+}
+
+.extSubsError {
+  font-size: 0.85rem;
+  color: #ff5d5d;
+  margin-left: 0.2rem;
+}
+
+.subUploadBtn {
+  height: 30px;
+  width: 30px;
+  border-radius: 8px;
+
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dim);
+
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.subUploadBtn:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.12);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Audio track */
+.audioTrackWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.audioLabel { font-size: 0.9rem; }
+.audioSelect {
+  height: 28px;
+  padding: 0 1.5rem 0 0.5rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 0.72rem;
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.4rem center;
+  max-width: 130px;
+}
+.audioSelect:focus { border-color: var(--accent); }
+.audioSelect option { background: var(--bg-2); }
+
+/* HLS mode badge in stats bar */
+.hlsBadge {
+  color: var(--accent-bright) !important;
+  font-weight: 800;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+}
+
+/* Overlay hint code blocks */
+.overlayHint code {
+  font-family: var(--font-mono);
+  background: rgba(255,255,255,0.08);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+}
+
+/* ── Subtitle control cluster ───────────────────────────────────────────────── */
+.subControls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+/* CC toggle — always present, never disappears */
+.subToggleBtn {
+  height: 28px;
+  padding: 0 0.6rem;
+  border-radius: 5px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.subToggleBtn:hover { color: var(--text); border-color: var(--border-hover); }
+.subActive {
+  color: white !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* Subtitle file dropdown */
+.subSelect {
+  height: 28px;
+  padding: 0 1.6rem 0 0.5rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 0.72rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.45rem center;
+  max-width: 170px;
+  text-overflow: ellipsis;
+}
+.subSelect:focus { border-color: var(--accent); }
+.subSelect option { background: var(--bg-2); }
+
+/* Upload subtitle button (+) */
+.subUploadBtn {
+  height: 28px;
+  width: 28px;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-dim);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.subUploadBtn:hover {
+  color: var(--text);
+  border-color: var(--border-hover);
+  background: rgba(255,255,255,0.1);
+}
+
+/* ── Audio track selector ────────────────────────────────────────────────────── */
+.audioTrackWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+.audioLabel { font-size: 0.9rem; line-height: 1; }
+.audioSelect {
+  height: 28px;
+  padding: 0 1.6rem 0 0.5rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 0.72rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color var(--transition);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(255,255,255,0.4)' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.45rem center;
+  max-width: 140px;
+}
+.audioSelect:focus { border-color: var(--accent); }
+.audioSelect option { background: var(--bg-2); }
+
+
+.modeToggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--surface-2, rgba(255,255,255,0.06));
+  border-radius: 6px;
+  padding: 2px;
+  flex-shrink: 0;
+}
+
+.modeBtn {
+  padding: 3px 9px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, rgba(255,255,255,0.45));
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.modeBtn:hover:not(.modeBtnActive) {
+  background: rgba(255,255,255,0.08);
+  color: var(--text, rgba(255,255,255,0.75));
+}
+
+.modeBtnActive {
+  background: var(--accent, #6366f1);
+  color: #fff;
+  cursor: default;
+}
+
+/* Small label above the toggle group (optional — mirrors other stat labels) */
+.modeToggleLabel {
+  font-size: 0.65rem;
+  color: var(--text-muted, rgba(255,255,255,0.4));
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+/* External subtitle fetch error indicator (small warning icon in sub controls) */
+.extSubsError {
+  font-size: 0.75rem;
+  color: var(--yellow, #facc15);
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.topBar {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.topBarHidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(-6px);
+}
+
+/* ── Top-bar inline torrent stats ──────────────────────────────────────────── */
+/* Sits between the title and the Files button. Rendered as light, subdued text
+   so it doesn't fight the title for attention. */
+.topStats {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;           /* push toward the right */
+  flex-shrink: 0;
+  opacity: 0.55;               /* deliberately dim — it's supporting info */
+  transition: opacity var(--transition);
+}
+.topStats:hover { opacity: 0.85; }
+
+.topStat {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+.topStatIcon {
+  font-size: 0.6rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+.topStatLabel {
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.topStatVal {
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.topStatHighlight {
+  color: var(--cyan) !important;
+}
+.topStatSep {
+  color: var(--border);
+  font-size: 0.7rem;
+  line-height: 1;
+  user-select: none;
+}
+
+/* Hide on very small screens */
+@media (max-width: 640px) { .topStats { display: none; } }
+
+/* ── Controls auto-hide ────────────────────────────────────────────────────── */
+.controlsHidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+/* statsBar already has a transition in the original; extend it */
+.statsBar {
+  transition: opacity 0.35s ease;
+}
+
+/* ── Custom scrubber ───────────────────────────────────────────────────────── */
+/* Sits above the statsRow. Replaces the thin progressTrack during playback. */
+.scrubberWrap {
+  position: relative;
+  height: 20px;          /* tall hit zone so hover is easy */
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 0.3rem;
+  /* overflow visible so the tooltip can poke out above */
+}
+
+/* The actual thin track */
+.scrubTrack {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 99px;
+  overflow: visible;
+  transition: height 0.15s ease;
+}
+.scrubberWrap:hover .scrubTrack { height: 6px; }
+
+/* Buffered (darkish white fill) */
+.scrubBuffered {
+  position: absolute;
+  left: 0; top: 0; height: 100%;
+  background: rgba(255,255,255,0.22);
+  border-radius: 99px;
+  pointer-events: none;
+  transition: width 0.4s linear;
+}
+
+/* Ghost / hover preview (semi-transparent accent) */
+.scrubGhost {
+  position: absolute;
+  left: 0; top: 0; height: 100%;
+  background: rgba(0,212,255,0.25);
+  border-radius: 99px;
+  pointer-events: none;
+}
+
+/* Played (gradient accent) */
+.scrubPlayed {
+  position: absolute;
+  left: 0; top: 0; height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--cyan));
+  border-radius: 99px;
+  pointer-events: none;
+  transition: width 0.1s linear;
+}
+
+/* Thumb dot */
+.scrubThumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px; height: 12px;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 0 2px rgba(0,212,255,0.4);
+  opacity: 0;
+  transition: opacity 0.15s, left 0.1s linear;
+}
+.scrubberWrap:hover .scrubThumb { opacity: 1; }
+
+/* FIX #2: Time tooltip — positioned relative to .scrubberWrap (position:relative)
+   so `left` is element-relative, not page-relative. translateX(-50%) centers it
+   on the cursor. Clamped in JS to [24px, width-24px] so it never overflows. */
+.scrubTooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);   /* sits just above the scrubber */
+  transform: translateX(-50%);
+  background: rgba(10, 12, 22, 0.92);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 5px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+  backdrop-filter: blur(4px);
+}
+
+/* ── Playback controls cluster (play, skip, volume, time) ──────────────────── */
+.playbackControls {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.playBtn {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: white;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+.playBtn:hover { background: rgba(255,255,255,0.18); transform: scale(1.07); }
+
+.skipBtn {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  transition: color var(--transition), background var(--transition);
+}
+.skipBtn:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+
+/* Volume */
+.volumeGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+.volumeSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 64px;
+  height: 3px;
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+  /* Fill left side to --vol-pct with accent, right side dim */
+  background: linear-gradient(
+    to right,
+    var(--cyan) 0%,
+    var(--cyan) var(--vol-pct, 100%),
+    rgba(255,255,255,0.18) var(--vol-pct, 100%),
+    rgba(255,255,255,0.18) 100%
+  );
+}
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+}
+.volumeSlider::-moz-range-thumb {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: white;
+  border: none;
+  cursor: pointer;
+}
+
+/* Time readout */
+.timeDisplay {
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  margin-left: 0.35rem;
+}
+.timeSep { color: var(--muted); margin: 0 0.2rem; }
+
+/* Fullscreen button */
+.fsBtn {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.fsBtn:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+
+.subSelect {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subControls {
+  position: relative;
+  z-index: 100;
+}
+
+.subSelect option {
+  background: #111827;
+  color: white;
+}
+
+
+/* ── Outer wrapper — sits below the controls bar ── */
+.extractPanel {
+  width: 100%;
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+/* ── Collapsed header / toggle button ── */
+.extractToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s, background 0.15s;
+  user-select: none;
+}
+
+.extractToggle:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.extractToggleOpen {
+  color: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.extractIcon {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.extractBadge {
+  margin-left: 4px;
+  padding: 1px 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.03em;
+}
+
+/* ── Arrow chevron (reuse .arrow / .arrowOpen if already defined, or define here) ── */
+/* If .arrow and .arrowOpen are already in your CSS, skip these: */
+.arrow {
+  margin-left: auto;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid rgba(255, 255, 255, 0.4);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.arrowOpen {
+  transform: rotate(180deg);
+}
+
+/* ── Expanded body ── */
+.extractBody {
+  padding: 4px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: extractFadeIn 0.15s ease;
+}
+
+@keyframes extractFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Status / loading row ── */
+.extractStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  padding: 6px 0;
+}
+
+/* ── Error box ── */
+.extractError {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: rgba(220, 60, 60, 0.15);
+  border: 1px solid rgba(220, 60, 60, 0.3);
+  border-radius: 6px;
+  color: #f87171;
+  font-size: 0.8rem;
+}
+
+.extractError small {
+  opacity: 0.75;
+  font-size: 0.72rem;
+}
+
+/* ── Section (Audio / Subtitle) ── */
+.extractSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.extractSectionTitle {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.35);
+  padding-bottom: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ── Individual stream row ── */
+.extractStreamRow {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.extractStreamRow:hover {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+/* ── Stream info line (badge + label) ── */
+.extractStreamInfo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.extractStreamBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  padding: 1px 5px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+
+.extractStreamLabel {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Format buttons row ── */
+.extractFmtRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+
+/* ── Individual format download button ── */
+.extractFmtBtn {
+  padding: 3px 9px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, transform 0.1s;
+  letter-spacing: 0.02em;
+}
+
+.extractFmtBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.extractFmtBtn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.extractFmtBtn:disabled,
+.extractFmtBusy {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ── "Use in player" subtitle button ── */
+.extractUseBtn {
+  padding: 3px 9px;
+  background: rgba(99, 179, 237, 0.12);
+  border: 1px solid rgba(99, 179, 237, 0.25);
+  border-radius: 5px;
+  color: #7ec8e3;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.extractUseBtn:hover {
+  background: rgba(99, 179, 237, 0.22);
+  transform: translateY(-1px);
+}
+
+.extractUseBtn:active {
+  transform: translateY(0);
+}
+
+/* ── Empty state ── */
+.extractEmpty {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 4px 0;
+  font-style: italic;
+}
+
+/* ── Hint row at the bottom of the expanded panel ── */
+.extractHint {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.28);
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  line-height: 1.4;
+}
+
+.extractHint b {
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 600;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   CSS ADDITIONS — append these to your StreamPage.module.css
+   Covers: unified track dropdown, audio trigger, subtitle badge styles,
+   and the shared dropArrow chevron used by both dropdowns.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* ── Shared chevron arrow (used by both audio and subtitle triggers) ── */
+.dropArrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid rgba(255, 255, 255, 0.35);
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+.dropArrowOpen {
+  transform: rotate(180deg);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   AUDIO TRACK DROPDOWN
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Wrapper — relative so dropdown anchors to it */
+.trackDropdownWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Trigger button */
+.trackTriggerBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 7px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+  max-width: 130px;
+}
+.trackTriggerBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.trackTriggerOpen {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.trackTriggerLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90px;
+}
+
+/* Shared dropdown panel (used by audio dropdown) */
+.trackDropdown {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  min-width: 200px;
+  max-width: 280px;
+  background: rgba(18, 18, 24, 0.97);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  z-index: 200;
+  animation: dropIn 0.12s ease;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Group label inside dropdown */
+.trackGroupLabel {
+  padding: 6px 12px 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.28);
+}
+
+/* Individual option row */
+.trackOption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px 7px 26px; /* left-pad leaves room for the checkmark */
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.trackOption:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+.trackOptionActive {
+  color: #fff;
+  padding-left: 10px; /* reset to fit checkmark */
+}
+
+/* Checkmark for the active option */
+.trackCheck {
+  font-size: 0.7rem;
+  color: #60a5fa;
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+}
+
+/* Small hint line at the bottom of a section */
+.trackHint {
+  padding: 4px 12px 8px;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.25);
+  font-style: italic;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   SUBTITLE DROPDOWN — additions / overrides
+   (Most subtitle styles already exist; these add the missing pieces.)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/* Make the subtitle dropdown also use the shared dropArrow — if your existing
+   .arrow / .arrowOpen classes conflict, replace them with .dropArrow / .dropArrowOpen
+   in the JSX (already done in the updated StreamPage.jsx above). */
+
+/* Active option highlight */
+.subOptionActive {
+  color: #fff !important;
+  padding-left: 10px !important;
+}
+
+/* Dimmed "no subtitles found" / loading line */
+.subOptionDim {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
+}
+
+/* Truncated subtitle title text */
+.subOptionText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+/* HI / trusted badges inside subtitle options */
+.subBadge {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.04em;
+  margin-left: 3px;
+}
+.subBadgeTrusted {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: #86efac;
+  margin-left: 3px;
+}
+@media (max-width: 768px) {
+  .topBar { padding: 0.75rem 1rem; }
+  .titleText { font-size: 0.9rem; }
+  .playerBox { height: 40vh; max-height: 40vh; }
+  .statsRow { gap: 0.75rem; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
