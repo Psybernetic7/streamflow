@@ -16,6 +16,11 @@
   "build": {
     "appId": "com.streamflow.desktop",
     "productName": "StreamFlow",
+    "publish": [
+    {
+      "provider": "github"
+    }
+  ],
     "files": [
       "electron/**/*",
       "streamer/**/*",

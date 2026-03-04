@@ -1,7 +1,10 @@
 name: Build StreamFlow
-
+permissions:
+  contents: write
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
   workflow_dispatch:
@@ -84,7 +87,7 @@ jobs:
       # -------------------------
 
       - name: Build Electron app
-        run: npx electron-builder --publish never
+        run: npx electron-builder --publish always
 
       # -------------------------
       # Upload artifacts
