@@ -1,27 +1,24 @@
 {
   "name": "streamflow",
-  "version": "1.0.1",
-  "description": "Torrent streaming desktop app",
+  "version": "1.0.2",
+  "description": "Watch your favorite Movies and TV shows",
   "author": "Rajib Roy",
   "main": "electron/main.js",
   "private": true,
-
   "scripts": {
     "dev": "electron .",
     "build:win": "electron-builder --win",
     "build:mac": "electron-builder --mac",
     "build:linux": "electron-builder --linux"
   },
-
   "build": {
     "appId": "com.streamflow.desktop",
     "productName": "StreamFlow",
     "publish": [
-    {
-      "provider": "github"
-      
-    }
-  ],
+      {
+        "provider": "github"
+      }
+    ],
     "files": [
       "electron/**/*",
       "streamer/**/*",
@@ -37,23 +34,24 @@
     "asar": true,
     "win": {
       "target": [
-    "nsis",
-    "portable"
-  ]
+        "nsis",
+        "portable"
+      ]
     },
     "mac": {
       "target": "dmg"
     },
     "linux": {
-  "target": "AppImage",
-  "category": "Video"
-}
+      "target": "AppImage",
+      "category": "Video"
+    }
   },
   "dependencies": {
-    "webtorrent": "^2.5.1",
-    "express": "^4.19.2",
     "cors": "^2.8.5",
-    "node-fetch": "^3.3.2"
+    "express": "^4.19.2",
+    "memory-chunk-store": "^1.3.5",
+    "node-fetch": "^3.3.2",
+    "webtorrent": "^2.5.1"
   },
   "devDependencies": {
     "electron": "^40.6.1",

@@ -6,6 +6,7 @@ import http from 'http'
 import fetch from 'node-fetch'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import MemoryChunkStore from 'memory-chunk-store'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = parseInt(process.env.PORT || '9090')
@@ -622,7 +623,8 @@ async function getOrAdd(hashOrMagnet, sendStatus, torrentUrl = null) {
 
   if (!input) throw new Error('No magnet, infoHash, or .torrent available')
 
-  const torrent = getClient().add(input, { strategy: 'sequential' })
+  const torrent = getClient().add(input, { strategy: 'sequential', 
+    store: MemoryChunkStore,   })
   const hb = buf ? null : setInterval(() => sendStatus(`Fetching metadata… ${torrent.numPeers} peers`), 4000)
   try {
     await waitReady(torrent)

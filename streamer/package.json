@@ -7,9 +7,10 @@
     "dev": "node --watch server.js"
   },
   "dependencies": {
-    "webtorrent": "^2.5.1",
-    "express": "^4.19.2",
     "cors": "^2.8.5",
-    "node-fetch": "^3.3.2"
+    "express": "^4.19.2",
+    "memory-chunk-store": "^1.3.5",
+    "node-fetch": "^3.3.2",
+    "webtorrent": "^2.5.1"
   }
 }
