@@ -1,6 +1,6 @@
 {
   "name": "streamflow",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Watch your favorite Movies and TV shows",
   "author": "Rajib Roy",
   "main": "electron/main.js",
