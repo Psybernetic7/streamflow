@@ -1043,6 +1043,45 @@ async function searchTorrentsCsv(query, limit) {
   } catch (e) { console.log('[torrents-csv]', e.message); return [] }
 }
 
+// Torrentio (Stremio addon) — aggregates torrents from many sources including
+// 1337x, ThePirateBay, RARBG, etc. Requires an IMDB ID, not a text query.
+// Returns streams with infoHash directly, plus metadata (seeds, size, source) in the title.
+// Endpoints: /stream/movie/{imdbId}.json, /stream/series/{imdbId}:{season}:{episode}.json
+async function searchTorrentio(query, limit, imdbId = null) {
+  // Torrentio only works with IMDB IDs — skip if we don't have one
+  if (!imdbId) return []
+  try {
+    const url = `https://torrentio.strem.fun/stream/movie/${imdbId}.json`
+    const r = await fetch(url, {
+      headers: FETCH_HEADERS,
+      signal: AbortSignal.timeout(12000),
+    })
+    const json = await safeJSON(r, 'torrentio')
+    if (!json) return []
+    const streams = json.streams || []
+    return streams.slice(0, limit).flatMap(s => {
+      if (!s.infoHash) return []
+      const title = s.behaviorHints?.filename || s.title?.split('\n')[0] || 'Unknown'
+      // Parse seeders (👤), size (💾), and source (⚙️) from Torrentio's formatted title string
+      const titleStr = s.title || ''
+      const seedMatch = titleStr.match(/👤\s*(\d+)/)
+      const sizeMatch = titleStr.match(/💾\s*([\d.]+\s*[TGMK]B)/i)
+      const srcMatch  = titleStr.match(/⚙️\s*(\S+)/)
+      return [torrentItem({
+        id: s.infoHash.toLowerCase(),
+        title,
+        magnet_link: buildMagnet(s.infoHash, title),
+        size_bytes: parseSize(sizeMatch?.[1] || ''),
+        seeders: parseInt(seedMatch?.[1]) || 0,
+        leechers: 0,
+        source: 'torrentio',
+        // Track the original source site that Torrentio found this on
+        providers: ['torrentio', srcMatch?.[1] || ''].filter(Boolean),
+      })]
+    })
+  } catch (e) { console.log('[torrentio]', e.message); return [] }
+}
+
 const PROXY_BASE      = 'https://torrent-search-api-murex.vercel.app/api'
 const PROXY_PROVIDERS = ['nyaasi', 'glodls']
 
@@ -1090,6 +1129,7 @@ async function aggregateTorrents(query, limitPerProvider = 20, { imdbId = null }
     searchPirateBay(query, limitPerProvider),
     searchTorrentsCsv(query, limitPerProvider),
     searchEZTV(query, limitPerProvider, imdbId),
+    searchTorrentio(query, limitPerProvider, imdbId),
   ]
   const proxySearches = PROXY_PROVIDERS.map(p => searchViaProxy(p, query, limitPerProvider))
   const settled = await Promise.allSettled([...directSearches, ...proxySearches])
@@ -1156,7 +1196,7 @@ app.get('/api/search/torrents', async (req, res) => {
   res.json({
     query: q, total: sorted.length, page, per_page: perPage,
     total_pages: Math.ceil(sorted.length / perPage),
-    providers_queried: ['knaben', 'piratebay', 'yts', 'eztv', 'torrents-csv', ...PROXY_PROVIDERS],
+    providers_queried: ['knaben', 'piratebay', 'yts', 'eztv', 'torrents-csv', 'torrentio', ...PROXY_PROVIDERS],
     cached: wasCached, results: paged,
   })
 })

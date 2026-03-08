@@ -188,8 +188,8 @@ fi
 
 # ── 1.5 Ensure FFmpeg is installed ──────────────────────────────────────────
 step "Checking FFmpeg"
-if command -v ffmpeg &>/dev/null; then
-    ok "FFmpeg available"
+if [[ -x "$ROOT/ffmpeg/linux/ffmpeg" && -x "$ROOT/ffmpeg/linux/ffprobe" ]]; then
+    ok "FFmpeg already installed"
 else
     warn "FFmpeg not found — installing automatically"
     case "$OS" in
@@ -198,14 +198,13 @@ else
         *)       fail "Unsupported OS: $OS — install FFmpeg manually from https://ffmpeg.org" ;;
     esac
 
-    hash -r 2>/dev/null || true
-
-    if command -v ffmpeg &>/dev/null; then
+    if [[ -x "$ROOT/ffmpeg/linux/ffmpeg" && -x "$ROOT/ffmpeg/linux/ffprobe" ]]; then
         ok "FFmpeg installed successfully"
     else
         fail "FFmpeg installation failed. Please install manually: https://ffmpeg.org"
     fi
 fi
+
 
 # ── 2. Frontend install + build ───────────────────────────────────────────────
 FRONTEND_DIR="$ROOT/frontend"
