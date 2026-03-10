@@ -1,3 +1,5 @@
+// Must be the first import — patches global.fetch before bittorrent-tracker loads
+import './patch-fetch.js'
 import express from 'express'
 import cors from 'cors'
 import WebTorrent from 'webtorrent'
@@ -462,13 +464,30 @@ function healthScore(seeders, leechers) {
 // TRACKERS / MAGNET HELPERS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 const EXTRA_TRACKERS = [
+  // HTTP(S) trackers — TCP-based, work even when ISP/firewall blocks UDP
+  // HTTP(S) trackers — TCP-based, work even when ISP/firewall blocks UDP
+  'http://tracker.opentrackr.org:1337/announce',
+  'https://tracker.lilithraws.org:443/announce',
+  'http://t.nyaatracker.com:80/announce',
+  'http://tracker2.dler.org:80/announce',
+  'http://bvarf.tracker.sh:2086/announce',
+  'http://tracker.mywaifu.best:6969/announce',
+  'https://tracker1.520.jp:443/announce',
+  'https://tracker.tamersunion.org:443/announce',
+  // UDP trackers — faster when available
   'udp://tracker.opentrackr.org:1337/announce',
   'udp://open.tracker.cl:1337/announce',
   'udp://tracker.openbittorrent.com:6969/announce',
   'udp://open.stealth.si:80/announce',
-  'https://tracker.tamersunion.org:443/announce',
   'udp://exodus.desync.com:6969/announce',
   'udp://tracker.torrent.eu.org:451/announce',
+  'udp://explodie.org:6969/announce',
+  'udp://tracker.tiny-vps.com:6969/announce',
+  'udp://tracker.moeking.me:6969/announce',
+  'udp://p4p.arenabg.com:1337/announce',
+  // WebSocket trackers — for WebTorrent WebRTC peers
+  'wss://tracker.openwebtorrent.com',
+  'wss://tracker.btorrent.xyz',
 ]
 
 function buildMagnet(infoHash, name = '') {
@@ -616,15 +635,22 @@ async function getOrAdd(hashOrMagnet, sendStatus, torrentUrl = null) {
   if (!buf && infoHash) buf = await fetchTorrentBuffer(infoHash, sendStatus)
 
   sendStatus('Connecting to BitTorrent swarm…')
+  // Always use buildMagnet() so trackers are included — a bare magnet with no
+  // trackers relies solely on DHT which is slow and often fails for less popular torrents
   const input = buf
-    || (hashOrMagnet.startsWith('magnet:') ? hashOrMagnet
-    : infoHash ? `magnet:?xt=urn:btih:${infoHash}`
-    : null)
+    || (infoHash ? buildMagnet(infoHash, '') : null)
+    || (hashOrMagnet.startsWith('magnet:') ? hashOrMagnet : null)
 
   if (!input) throw new Error('No magnet, infoHash, or .torrent available')
 
-  const torrent = getClient().add(input, { strategy: 'sequential', 
-    store: MemoryChunkStore,   })
+  // Pass trackers explicitly — magnet URI parsing alone may not pick them all up
+  const torrent = getClient().add(input, {
+    strategy: 'sequential',
+    store: MemoryChunkStore,
+    announce: EXTRA_TRACKERS,
+  })
+  torrent.on('warning', w => console.log(`[wt-warn] ${w.message || w}`))
+  torrent.on('error', e => console.log(`[wt-err] ${e.message}`))
   const hb = buf ? null : setInterval(() => sendStatus(`Fetching metadata… ${torrent.numPeers} peers`), 4000)
   try {
     await waitReady(torrent)
@@ -636,6 +662,13 @@ async function getOrAdd(hashOrMagnet, sendStatus, torrentUrl = null) {
   }
 
   const h = torrent.infoHash
+  // Log tracker status to help diagnose peer connection failures
+  if (torrent.discovery?.tracker?._trackers) {
+    for (const tr of torrent.discovery.tracker._trackers) {
+      tr.on('warning', w => console.log(`[tracker] ${tr.announceUrl} warn: ${w.message || w}`))
+      tr.on('update', r => console.log(`[tracker] ${tr.announceUrl} seeds=${r.complete} leech=${r.incomplete}`))
+    }
+  }
   console.log(`[ready] "${torrent.name}" peers=${torrent.numPeers}`)
   console.log(`[files] ${torrent.files.map((f, i) => `[${i}] ${f.name} (${(f.length / 1e6).toFixed(1)}MB)`).join(' | ')}`)
   torrents.set(h, { torrent, timer: null, addedAt: Date.now() })
@@ -1437,7 +1470,7 @@ app.get('/api/stream', async (req, res) => {
     resetTTL(torrent.infoHash)
 
     if (torrent.numPeers === 0) {
-      try { await waitForPeers(torrent, 30_000, () => {}) } catch (_) {
+      try { await waitForPeers(torrent, 45_000, () => {}) } catch (_) {
         return res.status(503).json({ error: 'No peers available — try again shortly' })
       }
     }
