@@ -646,7 +646,6 @@ async function getOrAdd(hashOrMagnet, sendStatus, torrentUrl = null) {
   // Pass trackers explicitly — magnet URI parsing alone may not pick them all up
   const torrent = getClient().add(input, {
     strategy: 'sequential',
-    store: MemoryChunkStore,
     announce: EXTRA_TRACKERS,
   })
   torrent.on('warning', w => console.log(`[wt-warn] ${w.message || w}`))
@@ -1158,7 +1157,7 @@ function looksLikeMedia(item) {
 
 async function aggregateTorrents(query, limitPerProvider = 20, { imdbId = null } = {}) {
   const directSearches = [
-    searchKnaben(query, limitPerProvider),
+    // searchKnaben(query, limitPerProvider),
     searchPirateBay(query, limitPerProvider),
     searchTorrentsCsv(query, limitPerProvider),
     searchEZTV(query, limitPerProvider, imdbId),
@@ -1229,7 +1228,7 @@ app.get('/api/search/torrents', async (req, res) => {
   res.json({
     query: q, total: sorted.length, page, per_page: perPage,
     total_pages: Math.ceil(sorted.length / perPage),
-    providers_queried: ['knaben', 'piratebay', 'yts', 'eztv', 'torrents-csv', 'torrentio', ...PROXY_PROVIDERS],
+    providers_queried: ['piratebay', 'yts', 'eztv', 'torrents-csv', 'torrentio', ...PROXY_PROVIDERS],
     cached: wasCached, results: paged,
   })
 })
