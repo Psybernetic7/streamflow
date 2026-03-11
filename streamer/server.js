@@ -58,6 +58,77 @@ function destroyHlsSession(key) {
   hlsSessions.delete(key)
 }
 
+// ── Hardware encoder detection ────────────────────────────────────────────────
+// Priority: nvenc (NVIDIA) → vaapi (Intel/AMD on Linux) → qsv (Intel QSV) → software
+// Override with HLS_HW_ENCODER=nvenc|vaapi|qsv|software
+let _hwEncoderCache = null
+
+// Functional test — encodes one synthetic frame to confirm the encoder actually works.
+// Checking `ffmpeg -encoders` is not enough: an encoder can be compiled in while its
+// GPU driver is absent, causing ffmpeg to fail silently when a real encode starts.
+function testEncoder(extraArgs) {
+  return new Promise(resolve => {
+    const args = [
+      '-v', 'error',
+      '-f', 'lavfi', '-i', 'color=c=black:s=16x16:r=1',
+      '-frames:v', '1',
+      ...extraArgs,
+      '-f', 'null', '-',
+    ]
+    const ff = spawn(process.env.FFMPEG_PATH, args, { stdio: 'ignore' })
+    const timer = setTimeout(() => { try { ff.kill() } catch (_) {}; resolve(false) }, 5000)
+    ff.on('close', code => { clearTimeout(timer); resolve(code === 0) })
+    ff.on('error', () => { clearTimeout(timer); resolve(false) })
+  })
+}
+
+async function detectHwEncoder() {
+  if (_hwEncoderCache !== null) return _hwEncoderCache
+  if (process.env.HLS_HW_ENCODER) {
+    _hwEncoderCache = process.env.HLS_HW_ENCODER
+    console.log(`[hls] using encoder from env: ${_hwEncoderCache}`)
+    return _hwEncoderCache
+  }
+
+  const device = process.env.VAAPI_DEVICE || '/dev/dri/renderD128'
+  const candidates = [
+    { name: 'nvenc', args: ['-c:v', 'h264_nvenc'] },
+    { name: 'vaapi', args: ['-vaapi_device', device, '-vf', 'format=nv12,hwupload', '-c:v', 'h264_vaapi'] },
+    { name: 'qsv',   args: ['-c:v', 'h264_qsv'] },
+  ]
+
+  for (const { name, args } of candidates) {
+    if (await testEncoder(args)) {
+      _hwEncoderCache = name
+      console.log(`[hls] hardware encoder available: ${name}`)
+      return _hwEncoderCache
+    }
+  }
+
+  _hwEncoderCache = 'software'
+  console.log('[hls] no hardware encoder found, using libx264')
+  return _hwEncoderCache
+}
+
+function buildVideoCodecArgs(encoder) {
+  switch (encoder) {
+    case 'nvenc':
+      // NVIDIA NVENC — software decode, GPU encode
+      return ['-c:v', 'h264_nvenc', '-preset', 'p4', '-cq', '23', '-pix_fmt', 'yuv420p']
+    case 'vaapi': {
+      // VA-API — software decode, upload to GPU, encode (Intel/AMD)
+      const device = process.env.VAAPI_DEVICE || '/dev/dri/renderD128'
+      return ['-vaapi_device', device, '-vf', 'format=nv12,hwupload', '-c:v', 'h264_vaapi', '-qp', '23']
+    }
+    case 'qsv':
+      // Intel Quick Sync Video
+      return ['-c:v', 'h264_qsv', '-preset', 'veryfast', '-global_quality', '23', '-pix_fmt', 'nv12']
+    default:
+      // Software fallback
+      return ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p']
+  }
+}
+
 async function getOrStartHlsSession(infoHash, fileIndex) {
   const key = hlsSessionKey(infoHash, fileIndex)
 
@@ -153,7 +224,7 @@ async function getOrStartHlsSession(infoHash, fileIndex) {
     }
   }
 
-  const videoCodecArgs = ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '23', '-pix_fmt', 'yuv420p']
+  const videoCodecArgs = buildVideoCodecArgs(await detectHwEncoder())
   const ffmpegArgs = ['-loglevel', 'warning', '-i', 'pipe:0']
 
   if (multiAudio) {
@@ -176,7 +247,7 @@ async function getOrStartHlsSession(infoHash, fileIndex) {
     for (let i = 1; i < audioStreams.length; i++) {
       const s = audioStreams[i]
       ffmpegArgs.push('-map', `0:a:${i}`)
-      ffmpegArgs.push(`-c:a:0`, 'aac', `-b:a:0`, '192k', `-ac:a:0`, '2')
+      ffmpegArgs.push('-c:a:0', 'aac', '-b:a:0', '192k', '-ac:a:0', '2')
       if (s.language) ffmpegArgs.push('-metadata:s:a:0', `language=${s.language}`)
       if (s.title)    ffmpegArgs.push('-metadata:s:a:0', `title=${s.title}`)
       ffmpegArgs.push(
@@ -583,7 +654,9 @@ async function fetchTorrentBuffer(infoHash, sendStatus) {
     try {
       sendStatus(`Fetching metadata from ${new URL(url).hostname}…`)
       const buf = await fetchBuffer(url)
-      if (buf && buf.length > 200) { console.log(`[meta] ${buf.length}b from ${url}`); return buf }
+      // A valid .torrent is bencoded — it must start with 'd' (0x64). Reject HTML/error pages.
+      if (buf && buf.length > 200 && buf[0] === 0x64) { console.log(`[meta] ${buf.length}b from ${url}`); return buf }
+      if (buf) console.log(`[meta] ${new URL(url).hostname}: invalid torrent data (starts with 0x${buf[0]?.toString(16) ?? '??'})`)
     } catch (e) { console.log(`[meta] ${new URL(url).hostname}: ${e.message}`) }
   }
   return null
@@ -2066,10 +2139,12 @@ app.get('/api/hls/:infoHash/:fileIndex/master.m3u8', async (req, res) => {
         const lang      = s.language || 'und'
         const name      = s.title || (s.language ? s.language.toUpperCase() : `Track ${i + 1}`)
         const isDefault = i === 0 ? 'YES' : 'NO'
-        // Track 0 lives inside the main video segments; tracks 1+ have separate playlists
-        const uri = i === 0 ? 'stream.m3u8' : `audio${i}.m3u8`
+        // Track 0 is embedded in the video segments — RFC 8216 says URI must be omitted
+        // for renditions whose media is carried in the variant stream itself.
+        // Tracks 1+ have separate audio-only playlists, so they get a URI.
+        const uriAttr = i === 0 ? '' : `,URI="audio${i}.m3u8"`
         lines.push(
-          `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",LANGUAGE="${lang}",NAME="${name}",DEFAULT=${isDefault},AUTOSELECT=${isDefault},URI="${uri}"`
+          `#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio",LANGUAGE="${lang}",NAME="${name}",DEFAULT=${isDefault},AUTOSELECT=${isDefault}${uriAttr}`
         )
       })
       lines.push(`#EXT-X-STREAM-INF:BANDWIDTH=4000000,CODECS="avc1.42E01E,mp4a.40.2",AUDIO="audio"`)
